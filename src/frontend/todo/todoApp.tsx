@@ -30,13 +30,13 @@ export class TodoApp extends React.Component<any, any> {
     }
 
     addTodo() {
-        const minLength = 3; // Longitud mínima del texto
-        const maxLength = 100; // Longitud máxima del texto
-        const forbiddenWords = ['prohibited', 'forbidden', 'banned'];
+        const min = 3; // Longitud mínima del texto
+        const max = 100; // Longitud máxima del texto
+        const forbidden = ['prohibited', 'forbidden', 'banned'];
 
         // Validación de longitud mínima y máxima
-        if (this.inputData.length < minLength || this.inputData.length > maxLength) {
-            alert(`Error: The todo text must be between ${minLength} and ${maxLength} characters long.`);
+        if (this.inputData.length < min || this.inputData.length > max) {
+            alert(`Error: The todo text must be between ${min} and ${max} characters long.`);
         } else if (/[^a-zA-Z0-9\s]/.test(this.inputData)) {
             // Validación de caracteres especiales
             alert('Error: The todo text can only contain letters, numbers, and spaces.');
@@ -45,7 +45,7 @@ export class TodoApp extends React.Component<any, any> {
             const words = this.inputData.split(/\s+/);
             let foundForbiddenWord = false;
             for (let word of words) {
-                if (forbiddenWords.includes(word)) {
+                if (forbidden.includes(word)) {
                     alert(`Error: The todo text cannot include the prohibited word "${word}"`);
                     foundForbiddenWord = true;
                     break;
