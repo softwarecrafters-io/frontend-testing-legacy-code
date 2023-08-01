@@ -23,7 +23,7 @@ describe('TodoList App', () => {
     cy.get('.add-todo-button').click();
     cy.get('.todo-list-item').should('contain', todoText);
 
-    cy.get('.todo-delete-button').first().click();
+    cy.get('.todo-delete-button').click();
     cy.contains('.todo-list-item', todoText).should('not.exist');
   });
 
@@ -37,6 +37,38 @@ describe('TodoList App', () => {
 
     cy.get('.todo-delete-button').click();
     cy.contains('.todo-list-item', todoText).should('not.exist');
+  });
+
+  it('should be able to filter by status', () => {
+    cy.get('.todo-input').type(todoText);
+    cy.get('.add-todo-button').click();
+    cy.get('.todo-mark-button').click();
+    cy.get('.todo-input').type(todoText+2);
+    cy.get('.add-todo-button').click();
+
+    cy.get('.todo-list-item').should('have.length', 2);
+    cy.get('.completed-filter').click();
+    cy.get('.todo-list-item').should('have.length', 1);
+    cy.get('.incomplete-filter').click();
+    cy.get('.todo-list-item').should('have.length', 1);
+
+    cy.get('.todo-delete-button').first().click();
+    cy.get('.todo-delete-button').first().click();
+    cy.contains('.todo-list-item', todoText).should('not.exist');
+  });
+
+  it('should be able to update a todo', () => {
+    cy.get('.todo-input').type(todoText);
+    cy.get('.add-todo-button').click();
+
+    cy.get('.edit-todo-button').click();
+    cy.get('.todo-edit-input').type('updated');
+    cy.get('.todo-update-button').click();
+
+    cy.get('.todo-list-item').should('contain', todoText+'updated');
+
+    cy.get('.todo-delete-button').click();
+    cy.contains('.todo-list-item', todoText+'updated').should('not.exist');
   });
 });
 

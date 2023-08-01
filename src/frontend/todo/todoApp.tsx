@@ -210,7 +210,8 @@ export class TodoApp extends React.Component<any, any> {
         return filteredTodos;
     }
 
-    edit(index){
+    edit(index, text){
+        this.inputUpdateData = text;
         this.updating[index] = true;
         this.forceUpdate();
     }
@@ -239,9 +240,9 @@ export class TodoApp extends React.Component<any, any> {
                 </button>
                 <h2>Completed Todos: {this.counter}</h2>
                 <div>
-                    <button className="todo-button" onClick={this.setFilter.bind(this, 'all')}>All</button>
-                    <button className="todo-button" onClick={this.setFilter.bind(this, 'completed')}>Completed</button>
-                    <button className="todo-button" onClick={this.setFilter.bind(this, 'incomplete')}>Incomplete</button>
+                    <button className="todo-button all-filter" onClick={this.setFilter.bind(this, 'all')}>All</button>
+                    <button className="todo-button completed-filter" onClick={this.setFilter.bind(this, 'completed')}>Completed</button>
+                    <button className="todo-button incomplete-filter" onClick={this.setFilter.bind(this, 'incomplete')}>Incomplete</button>
                 </div>
                 {todosToShow.map((todo, index) => (
                     <div className="todo-list-item">
@@ -252,7 +253,7 @@ export class TodoApp extends React.Component<any, any> {
                                 defaultValue={todo.text} // Asumiendo que inputData se usa para la edición
                                 onChange={this.handleUpdateInputChange.bind(this)}
                             />
-                                :  <p className="todo-text" style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>{todo.text} <button className="todo-button" onClick={()=> this.edit(index)}>Edit</button></p>
+                                :  <p className="todo-text" style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>{todo.text} <button className="todo-button edit-todo-button" onClick={()=> this.edit(index, todo.text)}>Edit</button></p>
 
                         }
                         <button className="todo-button todo-mark-button" onClick={this.toggleComplete.bind(this, index)}>
