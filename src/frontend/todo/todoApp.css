@@ -1,0 +1,44 @@
+.todo-app-container {
+    width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.todo-input {
+    width: 50%;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.todo-edit-input {
+    width: 50%;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.todo-button {
+    padding: 10px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.todo-list-item {
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.todo-text {
+    margin: 5px;
+}
+
+.todo-delete-button {
+    margin-left: 10px;
+    color: red;
+    cursor: pointer;
+}
