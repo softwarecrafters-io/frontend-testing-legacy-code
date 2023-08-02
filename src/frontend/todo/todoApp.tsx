@@ -1,32 +1,29 @@
 import * as React from "react";
 import {v4 as uuid} from 'uuid';
+import {Todo} from "../../domain/todo";
+import {TodoItem} from "./todoItem";
+
+type CurrentFilter = 'all' | 'completed' | 'incomplete';
 
 export class TodoApp extends React.Component<any, any> {
-    collection = [];
-    inputData = '';
-    inputUpdateData = '';
-    counter = 0;
-    f = 'all';
-    updating = [];
+    todoList: Todo[] = [];
+    todoText: string = '';
+    numberOfCompleted: number = 0;
+    currentFilter: CurrentFilter = 'all';
 
     constructor(props) {
         super(props);
+        this.initialize();
+    }
+
+    private initialize() {
         fetch('http://localhost:3000/api/todos/')
             .then(response => response.json())
             .then(data => {
-                this.collection = data;
-                for (let i = 0; i < this.collection.length; i++) {
-                    this.updating.push(false);
-                }
+                this.todoList = data;
                 this.forceUpdate();
             })
             .catch(error => console.log(error));
-    }
-
-    handleInputChange(event) {
-        var value = event.target.value;
-        this.inputData = value;
-        this.forceUpdate();
     }
 
     addTodo() {
@@ -35,14 +32,14 @@ export class TodoApp extends React.Component<any, any> {
         const forbidden = ['prohibited', 'forbidden', 'banned'];
 
         // Validación de longitud mínima y máxima
-        if (this.inputData.length < min || this.inputData.length > max) {
+        if (this.todoText.length < min || this.todoText.length > max) {
             alert(`Error: The todo text must be between ${min} and ${max} characters long.`);
-        } else if (/[^a-zA-Z0-9\s]/.test(this.inputData)) {
+        } else if (/[^a-zA-Z0-9\s]/.test(this.todoText)) {
             // Validación de caracteres especiales
             alert('Error: The todo text can only contain letters, numbers, and spaces.');
         } else {
             // Validación de palabras prohibidas
-            const words = this.inputData.split(/\s+/);
+            const words = this.todoText.split(/\s+/);
             let foundForbiddenWord = false;
             for (let word of words) {
                 if (forbidden.includes(word)) {
@@ -55,8 +52,8 @@ export class TodoApp extends React.Component<any, any> {
             if (!foundForbiddenWord) {
                 // Validación de texto repetido
                 let isRepeated = false;
-                for (let i = 0; i < this.collection.length; i++) {
-                    if (this.collection[i].text === this.inputData) {
+                for (let i = 0; i < this.todoList.length; i++) {
+                    if (this.todoList[i].text === this.todoText) {
                         isRepeated = true;
                         break;
                     }
@@ -68,13 +65,13 @@ export class TodoApp extends React.Component<any, any> {
                     // Si pasa todas las validaciones, agregar el "todo"
                     fetch('http://localhost:3000/api/todos/', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({id:uuid(), text: this.inputData, completed: false }),
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({id: uuid(), text: this.todoText, completed: false}),
                     })
                         .then(response => response.json())
                         .then(data => {
-                            this.collection.push(data);
-                            this.inputData = '';
+                            this.todoList.push(data);
+                            this.todoText = '';
                             this.forceUpdate();
                         });
                 }
@@ -82,144 +79,118 @@ export class TodoApp extends React.Component<any, any> {
         }
     }
 
-    updateTodo(index) {
-        const min = 3; // Longitud mínima del texto
-        const max = 100; // Longitud máxima del texto
-        const words = ['prohibited', 'forbidden', 'banned'];
-
-        // Validación de longitud mínima y máxima
-        if (this.inputUpdateData.length < min || this.inputUpdateData.length > max) {
-            alert(`Error: The todo text must be between ${min} and ${max} characters long.`);
-        } else if (/[^a-zA-Z0-9\s]/.test(this.inputUpdateData)) {
-            // Validación de caracteres especiales
+    updateTodo = (index: number, todo: Todo) => {
+        const minLength = 3;
+        const maxLength = 100;
+        const forbiddenWords = ['prohibited', 'forbidden', 'banned'];
+        const hasValidLength = todo.text.length < minLength || todo.text.length > maxLength;
+        if (hasValidLength) {
+            alert(`Error: The todo text must be between ${minLength} and ${maxLength} characters long.`);
+            return;
+        }
+        const isValidText = /[^a-zA-Z0-9\s]/.test(todo.text);
+        if (isValidText) {
             alert('Error: The todo text can only contain letters, numbers, and spaces.');
-        } else {
-            // Validación de palabras prohibidas
-            let temp1 = false;
-            for (let word of this.inputUpdateData.split(/\s+/)) {
-                if (words.includes(word)) {
-                    alert(`Error: The todo text cannot include the prohibited word "${word}"`);
-                    temp1 = true;
-                    break;
-                }
-            }
-
-            if (!temp1) {
-                // Validación de texto repetido (excluyendo el índice actual)
-                let temp2 = false;
-                for (let i = 0; i < this.collection.length; i++) {
-                    if (i !== index && this.collection[i].text === this.inputUpdateData) {
-                        temp2 = true;
-                        break;
-                    }
-                }
-
-                if (temp2) {
-                    alert('Error: The todo text is already in the collection.');
-                } else {
-                    // Si pasa todas las validaciones, actualizar el "todo"
-                    fetch(`http://localhost:3000/api/todos/${this.collection[index].id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: this.inputUpdateData, completed: this.collection[index].completed }),
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            this.collection[index] = data;
-                            this.close(index);
-                            this.forceUpdate();
-                        });
-                }
-            }
+            return;
         }
-    }
+        const words = todo.text.split(/\s+/);
+        const hasForbiddenWords = words.filter(word => forbiddenWords.includes(word)).length > 0;
+        if (hasForbiddenWords) {
+            alert(`Error: The todo text cannot include a prohibited word"`);
+            return;
+        }
+        this.todoList.forEach((todo, i) => {
+            if (i !== index && todo.text === todo.text) {
+                alert('Error: The todo text is already in the collection.');
+                return;
+            }
+        });
+        fetch(`http://localhost:3000/api/todos/${this.todoList[index].id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: todo.text, completed: this.todoList[index].completed}),
+        })
+            .then(response => response.json())
+            .then(data => {
+                this.todoList[index] = data;
+                this.forceUpdate();
+            });
+    };
 
-    handleUpdateInputChange(event) {
-        var value = event.target.value;
-        this.inputUpdateData = value;
-        this.forceUpdate();
-    }
-
-    deleteTodo(index) {
-        fetch(`http://localhost:3000/api/todos/${this.collection[index].id}`, { method: 'DELETE' })
+    deleteTodo = index => {
+        fetch(`http://localhost:3000/api/todos/${this.todoList[index].id}`, {method: 'DELETE'})
             .then(() => {
-                if (this.collection[index].completed) {
-                    this.counter--;
+                if (this.todoList[index].completed) {
+                    this.numberOfCompleted--;
                 }
-                this.collection.splice(index, 1);
+                this.todoList.splice(index, 1);
                 this.forceUpdate();
             })
-    }
+    };
 
-    toggleComplete(index) {
-        this.collection[index].completed = !this.collection[index].completed;
-        fetch(`http://localhost:3000/api/todos/${this.collection[index].id}`, {
+    toggleComplete = index => {
+        this.todoList[index].completed = !this.todoList[index].completed;
+        fetch(`http://localhost:3000/api/todos/${this.todoList[index].id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ completed: this.collection[index].completed }),
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({completed: this.todoList[index].completed}),
         })
             .then(response => response.json())
             .then(data => {
                 // this.collection[index] = data;
-                this.collection[index].completed ? this.counter++ : this.counter--;
+                this.todoList[index].completed ? this.numberOfCompleted++ : this.numberOfCompleted--;
                 this.forceUpdate();
             })
-    }
+    };
 
     toggleAllComplete() {
-        var areAllComplete = true;
-        for (var i = 0; i < this.collection.length; i++) {
-            if (!this.collection[i].completed) {
+        let areAllComplete = true;
+        for (const i = 0; i < this.todoList.length; i++) {
+            if (!this.todoList[i].completed) {
                 areAllComplete = false;
                 break;
             }
         }
-        for (var i = 0; i < this.collection.length; i++) {
-            this.collection[i].completed = !areAllComplete;
-            fetch(`http://localhost:3000/api/todos/${this.collection[i].id}`, {
+        for (const i = 0; i < this.todoList.length; i++) {
+            this.todoList[i].completed = !areAllComplete;
+            fetch(`http://localhost:3000/api/todos/${this.todoList[i].id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ completed: this.collection[i].completed }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({completed: this.todoList[i].completed}),
             })
                 .then(response => response.json())
                 .then(data => {
-                    this.collection[i] = data;
+                    this.todoList[i] = data;
                     this.forceUpdate();
                 })
         }
-        this.counter = areAllComplete ? 0 : this.collection.length;
+        this.numberOfCompleted = areAllComplete ? 0 : this.todoList.length;
         this.forceUpdate();
     }
 
     setFilter(filter) {
-        this.f = filter;
+        this.currentFilter = filter;
         this.forceUpdate();
     }
 
     getFilteredTodos() {
-        var filteredTodos = [];
-        for (var i = 0; i < this.collection.length; i++) {
+        const filteredTodos: Todo[] = [];
+        for (let i = 0; i < this.todoList.length; i++) {
             if (
-                this.f === 'all' ||
-                (this.f === 'completed' && this.collection[i].completed) ||
-                (this.f === 'incomplete' && !this.collection[i].completed)
+                this.currentFilter === 'all' ||
+                (this.currentFilter === 'completed' && this.todoList[i].completed) ||
+                (this.currentFilter === 'incomplete' && !this.todoList[i].completed)
             ) {
-                filteredTodos.push(this.collection[i]);
+                filteredTodos.push(this.todoList[i]);
             }
         }
         return filteredTodos;
     }
 
-    edit(index, text){
-        this.inputUpdateData = text;
-        this.updating[index] = true;
+    handleNewTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.todoText = event.target.value;
         this.forceUpdate();
-    }
-
-    close(index){
-        this.updating[index] = false;
-        this.forceUpdate();
-    }
+    };
 
     render() {
         const todosToShow = this.getFilteredTodos();
@@ -229,8 +200,8 @@ export class TodoApp extends React.Component<any, any> {
                 <h1>TODOLIST APP</h1>
                 <input
                     className="todo-input"
-                    value={this.inputData}
-                    onChange={this.handleInputChange.bind(this)}
+                    value={this.todoText}
+                    onChange={this.handleNewTextChange}
                 />
                 <button className="todo-button add-todo-button" onClick={this.addTodo.bind(this)}>
                     Add Todo
@@ -238,36 +209,20 @@ export class TodoApp extends React.Component<any, any> {
                 <button className="todo-button" onClick={this.toggleAllComplete.bind(this)}>
                     Mark All Complete
                 </button>
-                <h2>Completed Todos: {this.counter}</h2>
+                <h2>Completed Todos: {this.numberOfCompleted}</h2>
                 <div>
                     <button className="todo-button all-filter" onClick={this.setFilter.bind(this, 'all')}>All</button>
-                    <button className="todo-button completed-filter" onClick={this.setFilter.bind(this, 'completed')}>Completed</button>
-                    <button className="todo-button incomplete-filter" onClick={this.setFilter.bind(this, 'incomplete')}>Incomplete</button>
+                    <button className="todo-button completed-filter"
+                            onClick={this.setFilter.bind(this, 'completed')}>Completed
+                    </button>
+                    <button className="todo-button incomplete-filter"
+                            onClick={this.setFilter.bind(this, 'incomplete')}>Incomplete
+                    </button>
                 </div>
-                {todosToShow.map((todo, index) => (
-                    <div className="todo-list-item">
-                        {
-                            this.updating[index]
-                                ? <input
-                                className="todo-edit-input"
-                                defaultValue={todo.text} // Asumiendo que inputData se usa para la edición
-                                onChange={this.handleUpdateInputChange.bind(this)}
-                            />
-                                :  <p className="todo-text" style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>{todo.text} <button className="todo-button edit-todo-button" onClick={()=> this.edit(index, todo.text)}>Edit</button></p>
-
-                        }
-                        <button className="todo-button todo-mark-button" onClick={this.toggleComplete.bind(this, index)}>
-                            {todo.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
-                        </button>
-                        <button className="todo-button todo-delete-button" onClick={this.deleteTodo.bind(this, index)}>
-                            Delete Todo
-                        </button>
-
-                        <button className="todo-button todo-update-button" onClick={this.updateTodo.bind(this, index)}>
-                            Update Todo
-                        </button>
-                    </div>
-                ))}
+                {todosToShow.map((todo, index) =>
+                    <TodoItem index={index} todo={todo} onToggleComplete={this.toggleComplete}
+                              onDelete={this.deleteTodo} onUpdate={this.updateTodo}/>
+                )}
             </div>
         );
     }
