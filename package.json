@@ -7,6 +7,7 @@
     "start:front": "vite",
     "test:e2e": "cypress run",
     "test:unit": "jest --testMatch='**/src/tests/unit/**/*.test.*'",
+    "test:component": "jest --testEnvironment='jsdom' --testMatch='**/src/tests/component/**/*.test.*'",
     "test:integration": "jest --testMatch='**/src/tests/integration/**/*.test.*'",
     "test": "npm run test:e2e && npm run test:integration && npm run test:unit"
   },
@@ -15,6 +16,7 @@
     "@types/express": "^4.17.17",
     "@types/uuid": "^9.0.2",
     "cors": "^2.8.5",
+    "crypto-browserify": "^3.12.0",
     "express": "^4.18.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

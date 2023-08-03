@@ -145,13 +145,13 @@ export class TodoApp extends React.Component<any, any> {
 
     toggleAllComplete() {
         let areAllComplete = true;
-        for (const i = 0; i < this.todoList.length; i++) {
+        for (let i = 0; i < this.todoList.length; i++) {
             if (!this.todoList[i].completed) {
                 areAllComplete = false;
                 break;
             }
         }
-        for (const i = 0; i < this.todoList.length; i++) {
+        for (let i = 0; i < this.todoList.length; i++) {
             this.todoList[i].completed = !areAllComplete;
             fetch(`http://localhost:3000/api/todos/${this.todoList[i].id}`, {
                 method: 'PUT',

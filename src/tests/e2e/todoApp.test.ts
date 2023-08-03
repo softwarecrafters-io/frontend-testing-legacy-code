@@ -71,5 +71,21 @@ describe('TodoList App', () => {
     cy.visit('http://localhost:5173');
     cy.get('.todo-delete-button').click();
   });
+
+  it('should not be able to update a todo for a given short text', () => {
+    cy.get('.todo-input').type(todoText);
+    cy.get('.add-todo-button').click();
+
+    cy.get('.edit-todo-button').click();
+    cy.get('.todo-edit-input').clear().type('A');
+    cy.get('.todo-update-button').click();
+
+    cy.on('window:alert', (str) => {
+      expect(str).to.equal('Error: The todo text must be between 3 and 100 characters long.'); // Asegúrate de que la alerta contenga el mensaje correcto
+    });
+
+    cy.visit('http://localhost:5173');
+    cy.get('.todo-delete-button').click();
+  });
 });
 

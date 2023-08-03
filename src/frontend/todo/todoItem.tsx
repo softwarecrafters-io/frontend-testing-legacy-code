@@ -25,8 +25,13 @@ export function TodoItem({index, todo, onToggleComplete, onDelete, onUpdate}: To
     }
     const handleUpdate = (index: number, todo: Todo) => {
         setState({...state, isEditing: false});
-        const updatedTodo = updateTodo(todo, state.newText);
-        onUpdate(index, updatedTodo);
+        try{
+            const updatedTodo = updateTodo(todo, state.newText);
+            onUpdate(index, updatedTodo);
+        }
+        catch(e){
+            alert(e.message)
+        }
     }
     return <div className="todo-list-item">
         {
