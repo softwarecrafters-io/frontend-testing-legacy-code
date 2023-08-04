@@ -1,8 +1,8 @@
 import {v4 as uuid} from "uuid";
 
 export type Todo = {
-    id: string,
-    text: string,
+    readonly id: string,
+    readonly text: string,
     completed: boolean
 }
 
