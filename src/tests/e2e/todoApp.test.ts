@@ -87,5 +87,14 @@ describe('TodoList App', () => {
     cy.visit('http://localhost:5173');
     cy.get('.todo-delete-button').click();
   });
+
+  it('should not be able to add a new todo for a given short text', () => {
+    cy.get('.todo-input').type('A');
+    cy.get('.add-todo-button').click();
+
+    cy.on('window:alert', (str) => {
+      expect(str).to.equal('Error: The todo text must be between 3 and 100 characters long.'); // Asegúrate de que la alerta contenga el mensaje correcto
+    });
+  });
 });
 
