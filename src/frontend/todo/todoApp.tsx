@@ -166,30 +166,6 @@ export class TodoApp extends React.Component<any, any> {
             })
     }
 
-    toggleAllComplete() {
-        var areAllComplete = true;
-        for (var i = 0; i < this.collection.length; i++) {
-            if (!this.collection[i].completed) {
-                areAllComplete = false;
-                break;
-            }
-        }
-        for (var i = 0; i < this.collection.length; i++) {
-            this.collection[i].completed = !areAllComplete;
-            fetch(`http://localhost:3000/api/todos/${this.collection[i].id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ completed: this.collection[i].completed }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    this.collection[i] = data;
-                    this.forceUpdate();
-                })
-        }
-        this.counter = areAllComplete ? 0 : this.collection.length;
-        this.forceUpdate();
-    }
 
     setFilter(filter) {
         this.f = filter;
@@ -234,9 +210,6 @@ export class TodoApp extends React.Component<any, any> {
                 />
                 <button className="todo-button add-todo-button" onClick={this.addTodo.bind(this)}>
                     Add Todo
-                </button>
-                <button className="todo-button" onClick={this.toggleAllComplete.bind(this)}>
-                    Mark All Complete
                 </button>
                 <h2>Completed Todos: {this.counter}</h2>
                 <div>
