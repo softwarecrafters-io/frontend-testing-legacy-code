@@ -1,35 +1,19 @@
-import {Todo, updateTodo} from "../../domain/todo";
+import {Todo} from "../../domain/todo";
 import * as React from "react";
-import {useState} from "react";
+import {useTodoItem} from "./useTodoItem";
 
 type TodoItemProps = {
-    index: number,
     todo: Todo,
     onToggleComplete: (todo: Todo) => void,
     onDelete: (todo:Todo) => void,
     onUpdate: (todo: Todo, newText:string) => void,
 }
 
-type TodoItemState = {
-    newText: string,
-    isEditing: boolean,
-}
-
-export function TodoItem({index, todo, onToggleComplete, onDelete, onUpdate}: TodoItemProps) {
-    const [state, setState] = useState<TodoItemState>({newText: '', isEditing: false});
-    const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setState({...state, newText: event.target.value});
-    }
-    const handleEdit = () => {
-        setState({...state, isEditing: true});
-    }
-    const handleUpdate = (index: number, todo: Todo) => {
-        setState({...state, isEditing: false});
-        onUpdate(todo, state.newText)
-    }
+export function TodoItem(props: TodoItemProps) {
+    const {todo, isEditing, newText, handleTextChange, handleEdit, handleUpdate} = useTodoItem(props);
     return <div className="todo-list-item">
         {
-            state.isEditing
+            isEditing
                 ? <input className="todo-edit-input" defaultValue={todo.text} onChange={handleTextChange}/>
                 :
                 <p className="todo-text" style={{textDecoration: todo.completed ? 'line-through' : 'none'}}>
@@ -37,13 +21,13 @@ export function TodoItem({index, todo, onToggleComplete, onDelete, onUpdate}: To
                     <button className="todo-button edit-todo-button" onClick={handleEdit}>Edit</button>
                 </p>
         }
-        <button className="todo-button todo-mark-button" onClick={() => onToggleComplete(todo)}>
+        <button className="todo-button todo-mark-button" onClick={() => props.onToggleComplete(todo)}>
             {todo.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
         </button>
-        <button className="todo-button todo-delete-button" onClick={() => onDelete(todo)}>
+        <button className="todo-button todo-delete-button" onClick={() => props.onDelete(todo)}>
             Delete Todo
         </button>
-        <button className="todo-button todo-update-button" onClick={() => handleUpdate(index, todo)}>
+        <button className="todo-button todo-update-button" onClick={() => handleUpdate(todo)}>
             Update Todo
         </button>
     </div>;

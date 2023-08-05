@@ -13,7 +13,7 @@ export function toggleTodoCompleted(todo: Todo) {
     }
 }
 
-export function updateTodo(todo: Todo, text: string) {
+export function updateTodoText(todo: Todo, text: string) {
     ensureThatHaveValidLength(text);
     ensureThatOnlyContainsAlphanumeric(text);
     ensureThatNotContainsProhibitedWords(text);
