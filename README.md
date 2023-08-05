@@ -1,7 +1,5 @@
 # Frontend testing with legacy code
 
-## Your Project Name
-
 This project is a refactoring exercise for the Sustainable Testing course. It is designed to provide hands-on experience in applying best practices for sustainable testing within a modern development environment.
 
 ## Requirements
