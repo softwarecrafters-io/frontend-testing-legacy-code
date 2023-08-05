@@ -5,8 +5,8 @@ import {useState} from "react";
 type TodoItemProps = {
     index: number,
     todo: Todo,
-    onToggleComplete: (index: number) => void,
-    onDelete: (index: number) => void,
+    onToggleComplete: (todo: Todo) => void,
+    onDelete: (todo:Todo) => void,
     onUpdate: (todo: Todo, newText:string) => void,
 }
 
@@ -37,10 +37,10 @@ export function TodoItem({index, todo, onToggleComplete, onDelete, onUpdate}: To
                     <button className="todo-button edit-todo-button" onClick={handleEdit}>Edit</button>
                 </p>
         }
-        <button className="todo-button todo-mark-button" onClick={() => onToggleComplete(index)}>
+        <button className="todo-button todo-mark-button" onClick={() => onToggleComplete(todo)}>
             {todo.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
         </button>
-        <button className="todo-button todo-delete-button" onClick={() => onDelete(index)}>
+        <button className="todo-button todo-delete-button" onClick={() => onDelete(todo)}>
             Delete Todo
         </button>
         <button className="todo-button todo-update-button" onClick={() => handleUpdate(index, todo)}>

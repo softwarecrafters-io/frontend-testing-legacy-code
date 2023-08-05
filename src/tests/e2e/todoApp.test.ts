@@ -53,7 +53,6 @@ describe('TodoList App', () => {
     cy.get('.todo-list-item').should('have.length', 1);
 
     cy.get('.todo-delete-button').first().click();
-    cy.get('.todo-delete-button').first().click();
     cy.contains('.todo-list-item', todoText).should('not.exist');
   });
 
@@ -67,8 +66,6 @@ describe('TodoList App', () => {
 
     cy.get('.todo-list-item').should('contain', todoText+'updated');
 
-    cy.get('.todo-delete-button').click();
-    cy.visit('http://localhost:5173');
     cy.get('.todo-delete-button').click();
   });
 

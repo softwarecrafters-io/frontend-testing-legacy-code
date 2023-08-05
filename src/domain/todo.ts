@@ -6,6 +6,13 @@ export type Todo = {
     completed: boolean
 }
 
+export function toggleTodoCompleted(todo: Todo) {
+    return {
+        ...todo,
+        completed: !todo.completed
+    }
+}
+
 export function updateTodo(todo: Todo, text: string) {
     ensureThatHaveValidLength(text);
     ensureThatOnlyContainsAlphanumeric(text);

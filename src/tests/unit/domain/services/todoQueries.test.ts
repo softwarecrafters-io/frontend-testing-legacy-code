@@ -33,15 +33,16 @@ describe('The todo Queries', () => {
     });
 
     describe('ensureIsNotRepeated', () => {
-       it('should throw an error if the todo text is already in the collection', () => {
-              expect(() => {
+        it('should throw an error if the todo text is already in the collection', () => {
+            expect(() => {
                 ensureIsNotRepeated(todoList, 'Todo 1');
-              }).toThrow('The todo text is already in the collection.');
-       });
-       it('shoud not throw an error if the todo text is not in the collection', () => {
-                expect(() => {
-                    ensureIsNotRepeated(todoList, 'Todo 5');
-                }).not.toThrow();
-       });
+            }).toThrow('The todo text is already in the collection.');
+        });
+
+        it('shoud not throw an error if the todo text is not in the collection', () => {
+            expect(() => {
+                ensureIsNotRepeated(todoList, 'Todo 5');
+            }).not.toThrow();
+        });
     });
 });

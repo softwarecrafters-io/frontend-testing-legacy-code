@@ -1,5 +1,5 @@
 import * as React from "react";
-import {createTodo, Todo, updateTodo} from "../../domain/todo";
+import {createTodo, Todo, toggleTodoCompleted, updateTodo} from "../../domain/todo";
 import {TodoItem} from "./todoItem";
 import {TodoApiRepository} from "../../infrastructure/repositories/todoApiRepository";
 import {CurrentFilter, ensureIsNotRepeated, filterTodo} from "../../domain/services/todoQueries";
@@ -18,11 +18,12 @@ export class TodoApp extends React.Component<any, any> {
 
     private initialize() {
         this.todoRepository.getAll()
-            .then(data => {
-                this.todoList = data;
-                this.forceUpdate();
-            })
-            .catch(error => console.log(error));
+            .then(this.handleGetAllSuccess)
+    }
+
+    handleGetAllSuccess = (todoList: Todo[]) => {
+        this.todoList = todoList;
+        this.forceUpdate();
     }
 
     addTodo(todoText:string) {
@@ -30,26 +31,26 @@ export class TodoApp extends React.Component<any, any> {
             const newTodo = createTodo(todoText);
             ensureIsNotRepeated( this.todoList, todoText)
             this.todoRepository.add(newTodo)
-                .then(data => {
-                    this.todoList.push(data);
-                    this.todoText = '';
-                    this.forceUpdate();
-                });
+                .then(this.handleAddSuccess);
         }
         catch(e){
             alert(e.message);
         }
     }
 
+    handleAddSuccess = (todo:Todo) => {
+        this.todoList.push(todo);
+        this.todoText = '';
+        this.forceUpdate();
+    }
+
     updateTodo = (todo:Todo, newText: string) => {
         try{
-            const i = this.todoList.findIndex(item => item.id === todo.id);
             const updatedTodo = updateTodo(todo, newText);
             ensureIsNotRepeated( this.todoList, newText)
             this.todoRepository.update(updatedTodo)
-                .then(data => {
-                    this.todoList[i] = data;
-                    this.forceUpdate();
+                .then(_ => {
+                    this.handleUpdateSuccess(updatedTodo);
                 });
         }
         catch(e){
@@ -57,45 +58,36 @@ export class TodoApp extends React.Component<any, any> {
         }
     };
 
-    deleteTodo = index => {
-        const todo = this.todoList[index];
+    handleUpdateSuccess = (todo:Todo) => {
+        const index = this.todoList.findIndex(item => item.id === todo.id);
+        this.todoList[index] = todo;
+        this.forceUpdate();
+    }
+
+    deleteTodo = (todo:Todo) => {
         this.todoRepository.delete(todo)
-            .then(() => {
-                if (this.todoList[index].completed) {
-                    this.numberOfCompleted--;
-                }
-                this.todoList.splice(index, 1);
-                this.forceUpdate();
-            })
+            .then(() => this.handleDeleteSuccess(todo));
     };
 
-    toggleComplete = index => {
-        const todo = this.todoList[index];
-        todo.completed = !todo.completed;
-        this.todoRepository.update(todo)
-            .then(data => {
-                todo.completed ? this.numberOfCompleted++ : this.numberOfCompleted--;
-                this.forceUpdate();
-            })
-    };
-
-    toggleAllComplete() {
-        let areAllComplete = true;
-        for (const item of this.todoList) {
-            if (!item.completed) {
-                areAllComplete = false;
-                break;
-            }
+    handleDeleteSuccess = (todo:Todo) => {
+        const index = this.todoList.findIndex(item => item.id === todo.id);
+        if (this.todoList[index].completed) {
+            this.numberOfCompleted--;
         }
-        this.todoList.forEach(item => {
-            item.completed = !areAllComplete;
-            this.todoRepository.update(item)
-                .then(data => {
-                    item = data;
-                    this.forceUpdate();
-                })
-        });
-        this.numberOfCompleted = areAllComplete ? 0 : this.todoList.length;
+        this.todoList.splice(index, 1);
+        this.forceUpdate();
+    }
+
+    toggleComplete = (todo:Todo) => {
+        const completedTodo = toggleTodoCompleted(todo);
+        this.todoRepository.update(completedTodo)
+            .then(_ => this.handleToggleCompleteSuccess(completedTodo))
+    };
+
+    handleToggleCompleteSuccess = (todo:Todo) => {
+        const index = this.todoList.findIndex(item => item.id === todo.id);
+        this.todoList[index] = todo;
+        todo.completed ? this.numberOfCompleted++ : this.numberOfCompleted--;
         this.forceUpdate();
     }
 
@@ -111,7 +103,6 @@ export class TodoApp extends React.Component<any, any> {
 
     render() {
         const todosToShow = filterTodo(this.todoList, this.currentFilter);
-
         return (
             <div className="todo-app-container">
                 <h1>TODOLIST APP</h1>
@@ -122,9 +113,6 @@ export class TodoApp extends React.Component<any, any> {
                 />
                 <button className="todo-button add-todo-button" onClick={()=> this.addTodo(this.todoText)}>
                     Add Todo
-                </button>
-                <button className="todo-button" onClick={()=>this.toggleAllComplete()}>
-                    Mark All Complete
                 </button>
                 <h2>Completed Todos: {this.numberOfCompleted}</h2>
                 <div>
