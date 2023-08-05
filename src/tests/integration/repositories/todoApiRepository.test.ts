@@ -1,5 +1,5 @@
 import {TodoApiRepository} from "../../../infrastructure/repositories/todoApiRepository";
-import {createTodo, updateTodo} from "../../../domain/todo";
+import {createTodo, updateTodoText} from "../../../domain/todo";
 
 describe('TodoApiRepository Integration Test', () => {
     let todoApiRepository: TodoApiRepository;
@@ -29,7 +29,7 @@ describe('TodoApiRepository Integration Test', () => {
 
     it('should update a todo', async () => {
         const existingTodo = await todoApiRepository.add(createTodo('New todo'));
-        const updatedTodo = updateTodo(existingTodo,'Updated todo');
+        const updatedTodo = updateTodoText(existingTodo,'Updated todo');
 
         const result = await todoApiRepository.update(updatedTodo);
 

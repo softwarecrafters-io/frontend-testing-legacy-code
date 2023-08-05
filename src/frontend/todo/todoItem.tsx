@@ -15,8 +15,7 @@ export function TodoItem(props: TodoItemProps) {
         {
             isEditing
                 ? <input className="todo-edit-input" defaultValue={todo.text} onChange={handleTextChange}/>
-                :
-                <p className="todo-text" style={{textDecoration: todo.completed ? 'line-through' : 'none'}}>
+                : <p className="todo-text" style={{textDecoration: todo.completed ? 'line-through' : 'none'}}>
                     {todo.text}
                     <button className="todo-button edit-todo-button" onClick={handleEdit}>Edit</button>
                 </p>

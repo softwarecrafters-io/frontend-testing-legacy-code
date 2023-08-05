@@ -1,4 +1,4 @@
-import {createTodo, updateTodo} from "../../../domain/todo";
+import {createTodo, updateTodoText} from "../../../domain/todo";
 
 describe('The Todo model', ()=>{
     describe('when creating a todo', ()=>{
@@ -45,19 +45,19 @@ describe('The Todo model', ()=>{
         it('should throw an error when a given text is more than maximum length', ()=>{
             const todo = createTodo('A valid todo text');
 
-            expect(()=>updateTodo(todo, 'a')).toThrowError(`Error: The todo text must be between 3 and 100 characters long.`);
+            expect(()=>updateTodoText(todo, 'a')).toThrowError(`Error: The todo text must be between 3 and 100 characters long.`);
         });
 
         it('should throw an error when a given text is not alphanumeric', ()=>{
             const todo = createTodo('A valid todo text');
             const newText = 'A valid todo text with special characters: !@#$%^&*()_+';
-            expect(()=>updateTodo(todo, newText)).toThrowError('Error: The todo text can only contain letters, numbers, and spaces.');
+            expect(()=>updateTodoText(todo, newText)).toThrowError('Error: The todo text can only contain letters, numbers, and spaces.');
         });
 
         it('should throw an error when a given text contains a prohibited word', ()=>{
             const todo = createTodo('A valid todo text');
             const newText = 'A valid todo text with a prohibited word';
-            expect(()=>updateTodo(todo, newText)).toThrowError(`Error: The todo text cannot include a prohibited word.`);
+            expect(()=>updateTodoText(todo, newText)).toThrowError(`Error: The todo text cannot include a prohibited word.`);
         });
     })
 });
