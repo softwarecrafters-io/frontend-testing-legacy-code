@@ -1,9 +1,8 @@
 import * as React from "react";
-import {createTodo, Todo} from "../../domain/todo";
+import {createTodo, Todo, updateTodo} from "../../domain/todo";
 import {TodoItem} from "./todoItem";
 import {TodoApiRepository} from "../../infrastructure/repositories/todoApiRepository";
-
-type CurrentFilter = 'all' | 'completed' | 'incomplete';
+import {CurrentFilter, ensureIsNotRepeated, filterTodo} from "../../domain/services/todoQueries";
 
 export class TodoApp extends React.Component<any, any> {
     todoList: Todo[] = [];
@@ -26,41 +25,36 @@ export class TodoApp extends React.Component<any, any> {
             .catch(error => console.log(error));
     }
 
-    onAddTodo(todoText:string) {
+    addTodo(todoText:string) {
         try{
             const newTodo = createTodo(todoText);
-            this.addTodo(newTodo);
+            ensureIsNotRepeated( this.todoList, todoText)
+            this.todoRepository.add(newTodo)
+                .then(data => {
+                    this.todoList.push(data);
+                    this.todoText = '';
+                    this.forceUpdate();
+                });
         }
         catch(e){
             alert(e.message);
         }
     }
 
-    private addTodo(todo: Todo) {
-        const isRepeated = this.todoList.some((item) => item.text === todo.text);
-        if (isRepeated) {
-            alert('Error: The todo text is already in the collection.');
-            return;
+    updateTodo = (todo:Todo, newText: string) => {
+        try{
+            const i = this.todoList.findIndex(item => item.id === todo.id);
+            const updatedTodo = updateTodo(todo, newText);
+            ensureIsNotRepeated( this.todoList, newText)
+            this.todoRepository.update(updatedTodo)
+                .then(data => {
+                    this.todoList[i] = data;
+                    this.forceUpdate();
+                });
         }
-        this.todoRepository.add(todo)
-            .then(data => {
-                this.todoList.push(data);
-                this.todoText = '';
-                this.forceUpdate();
-            });
-    }
-
-    updateTodo = (index: number, todo: Todo) => {
-        const isRepeated = this.todoList.some((item) => item.text === todo.text);
-        if (isRepeated) {
-            alert('Error: The todo text is already in the collection.');
-            return;
+        catch(e){
+            alert(e.message)
         }
-        this.todoRepository.update(todo)
-            .then(data => {
-                this.todoList[index] = data;
-                this.forceUpdate();
-            });
     };
 
     deleteTodo = index => {
@@ -110,27 +104,13 @@ export class TodoApp extends React.Component<any, any> {
         this.forceUpdate();
     }
 
-    getFilteredTodos() {
-        const filteredTodos: Todo[] = [];
-        for (let i = 0; i < this.todoList.length; i++) {
-            if (
-                this.currentFilter === 'all' ||
-                (this.currentFilter === 'completed' && this.todoList[i].completed) ||
-                (this.currentFilter === 'incomplete' && !this.todoList[i].completed)
-            ) {
-                filteredTodos.push(this.todoList[i]);
-            }
-        }
-        return filteredTodos;
-    }
-
     handleNewTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.todoText = event.target.value;
         this.forceUpdate();
     };
 
     render() {
-        const todosToShow = this.getFilteredTodos();
+        const todosToShow = filterTodo(this.todoList, this.currentFilter);
 
         return (
             <div className="todo-app-container">
@@ -140,7 +120,7 @@ export class TodoApp extends React.Component<any, any> {
                     value={this.todoText}
                     onChange={this.handleNewTextChange}
                 />
-                <button className="todo-button add-todo-button" onClick={()=> this.onAddTodo(this.todoText)}>
+                <button className="todo-button add-todo-button" onClick={()=> this.addTodo(this.todoText)}>
                     Add Todo
                 </button>
                 <button className="todo-button" onClick={()=>this.toggleAllComplete()}>
