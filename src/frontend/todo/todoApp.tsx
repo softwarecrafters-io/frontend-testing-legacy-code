@@ -1,6 +1,7 @@
 import * as React from "react";
 import {createTodo, Todo} from "../../domain/todo";
 import {TodoItem} from "./todoItem";
+import {TodoApiRepository} from "../../infrastructure/repositories/todoApiRepository";
 
 type CurrentFilter = 'all' | 'completed' | 'incomplete';
 
@@ -9,6 +10,7 @@ export class TodoApp extends React.Component<any, any> {
     todoText: string = '';
     numberOfCompleted: number = 0;
     currentFilter: CurrentFilter = 'all';
+    todoRepository = new TodoApiRepository('http://localhost:3000/api/todos/');
 
     constructor(props) {
         super(props);
@@ -16,8 +18,7 @@ export class TodoApp extends React.Component<any, any> {
     }
 
     private initialize() {
-        fetch('http://localhost:3000/api/todos/')
-            .then(response => response.json())
+        this.todoRepository.getAll()
             .then(data => {
                 this.todoList = data;
                 this.forceUpdate();
@@ -41,13 +42,7 @@ export class TodoApp extends React.Component<any, any> {
             alert('Error: The todo text is already in the collection.');
             return;
         }
-        // Si pasa todas las validaciones, agregar el "todo"
-        fetch('http://localhost:3000/api/todos/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(todo),
-        })
-            .then(response => response.json())
+        this.todoRepository.add(todo)
             .then(data => {
                 this.todoList.push(data);
                 this.todoText = '';
@@ -61,12 +56,7 @@ export class TodoApp extends React.Component<any, any> {
             alert('Error: The todo text is already in the collection.');
             return;
         }
-        fetch(`http://localhost:3000/api/todos/${todo.id}`, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({text: todo.text, completed: todo.completed}),
-        })
-            .then(response => response.json())
+        this.todoRepository.update(todo)
             .then(data => {
                 this.todoList[index] = data;
                 this.forceUpdate();
@@ -74,7 +64,8 @@ export class TodoApp extends React.Component<any, any> {
     };
 
     deleteTodo = index => {
-        fetch(`http://localhost:3000/api/todos/${this.todoList[index].id}`, {method: 'DELETE'})
+        const todo = this.todoList[index];
+        this.todoRepository.delete(todo)
             .then(() => {
                 if (this.todoList[index].completed) {
                     this.numberOfCompleted--;
@@ -85,41 +76,31 @@ export class TodoApp extends React.Component<any, any> {
     };
 
     toggleComplete = index => {
-        this.todoList[index].completed = !this.todoList[index].completed;
-        fetch(`http://localhost:3000/api/todos/${this.todoList[index].id}`, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({completed: this.todoList[index].completed}),
-        })
-            .then(response => response.json())
+        const todo = this.todoList[index];
+        todo.completed = !todo.completed;
+        this.todoRepository.update(todo)
             .then(data => {
-                // this.collection[index] = data;
-                this.todoList[index].completed ? this.numberOfCompleted++ : this.numberOfCompleted--;
+                todo.completed ? this.numberOfCompleted++ : this.numberOfCompleted--;
                 this.forceUpdate();
             })
     };
 
     toggleAllComplete() {
         let areAllComplete = true;
-        for (let i = 0; i < this.todoList.length; i++) {
-            if (!this.todoList[i].completed) {
+        for (const item of this.todoList) {
+            if (!item.completed) {
                 areAllComplete = false;
                 break;
             }
         }
-        for (let i = 0; i < this.todoList.length; i++) {
-            this.todoList[i].completed = !areAllComplete;
-            fetch(`http://localhost:3000/api/todos/${this.todoList[i].id}`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({completed: this.todoList[i].completed}),
-            })
-                .then(response => response.json())
+        this.todoList.forEach(item => {
+            item.completed = !areAllComplete;
+            this.todoRepository.update(item)
                 .then(data => {
-                    this.todoList[i] = data;
+                    item = data;
                     this.forceUpdate();
                 })
-        }
+        });
         this.numberOfCompleted = areAllComplete ? 0 : this.todoList.length;
         this.forceUpdate();
     }
@@ -162,17 +143,17 @@ export class TodoApp extends React.Component<any, any> {
                 <button className="todo-button add-todo-button" onClick={()=> this.onAddTodo(this.todoText)}>
                     Add Todo
                 </button>
-                <button className="todo-button" onClick={this.toggleAllComplete.bind(this)}>
+                <button className="todo-button" onClick={()=>this.toggleAllComplete()}>
                     Mark All Complete
                 </button>
                 <h2>Completed Todos: {this.numberOfCompleted}</h2>
                 <div>
-                    <button className="todo-button all-filter" onClick={this.setFilter.bind(this, 'all')}>All</button>
+                    <button className="todo-button all-filter" onClick={()=> this.setFilter('all')}>All</button>
                     <button className="todo-button completed-filter"
-                            onClick={this.setFilter.bind(this, 'completed')}>Completed
+                            onClick={()=>this.setFilter('completed')}>Completed
                     </button>
                     <button className="todo-button incomplete-filter"
-                            onClick={this.setFilter.bind(this, 'incomplete')}>Incomplete
+                            onClick={()=>this.setFilter('incomplete')}>Incomplete
                     </button>
                 </div>
                 {todosToShow.map((todo, index) =>
